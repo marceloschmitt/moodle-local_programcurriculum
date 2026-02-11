@@ -41,3 +41,43 @@ function local_programcurriculum_extend_navigation_course(
         $url
     );
 }
+
+/**
+ * Injects a visible link at the top of the course page.
+ *
+ * Uses the output callback to add HTML above the main content.
+ * Only shows when viewing a course and user has the capability.
+ *
+ * @return string HTML to inject at top of body, or empty string.
+ */
+function local_programcurriculum_before_standard_top_of_body_html(): string {
+    global $PAGE;
+
+    if (!$PAGE->course || $PAGE->course->id <= 0) {
+        return '';
+    }
+
+    if ($PAGE->context->contextlevel != CONTEXT_COURSE && $PAGE->context->contextlevel != CONTEXT_MODULE) {
+        return '';
+    }
+
+    $coursecontext = $PAGE->context->contextlevel == CONTEXT_COURSE
+        ? $PAGE->context
+        : $PAGE->context->get_course_context(false);
+
+    if (!$coursecontext || !has_capability('block/programcurriculum:viewownprogress', $coursecontext)) {
+        return '';
+    }
+
+    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $PAGE->course->id]);
+    $text = get_string('curriculumnav', 'local_programcurriculum');
+
+    return html_writer::div(
+        html_writer::link($url, $text, [
+            'class' => 'btn btn-outline-secondary',
+            'style' => 'margin-bottom: 1rem;',
+        ]),
+        'local-programcurriculum-top-link',
+        ['style' => 'margin-bottom: 1rem;']
+    );
+}
