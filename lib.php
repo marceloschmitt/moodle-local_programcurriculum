@@ -14,49 +14,97 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Adiciona link "Currículo" automaticamente no primeiro tópico do curso
- * usando a capability do bloco programcurriculum
+ * Extends the course settings navigation with a link to curriculum progress.
+ *
+ * @see https://moodledev.io/docs/5.1/apis/core/navigation
+ *
+ * @param navigation_node $parentnode The course navigation node.
+ * @param stdClass $course The course object.
+ * @param context_course $context The course context.
  */
-function local_programcurriculum_inject_first_section($course, $context) {
-    global $PAGE;
-
-    // Verifica permissão do usuário no contexto do curso
+function local_programcurriculum_extend_navigation_course(
+    navigation_node $parentnode,
+    stdClass $course,
+    context_course $context
+): void {
     if (!has_capability('block/programcurriculum:viewownprogress', $context)) {
         return;
     }
 
-    // Garantir que estamos na visualização do curso
-    if (strpos($PAGE->pagetype, 'course-view') === false) {
-        return;
-    }
-
-    // URL do bloco programcurriculum
     $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $course->id]);
 
-    // HTML do link/botão
-    $linkhtml = html_writer::div(
-        html_writer::link(
-            $url,
-            get_string('curriculumnav', 'local_programcurriculum'),
-            ['class' => 'btn btn-primary']
-        ),
-        ['class' => 'local-curriculum-firstsection', 'style' => 'margin-bottom:10px;']
+    $parentnode->add(
+        get_string('curriculumnav', 'local_programcurriculum'),
+        $url
     );
-
-    // Exibe o link no topo do primeiro tópico
-    echo $linkhtml;
 }
 
 /**
- * Hook chamado no render do curso
+ * Injects the Currículo link into the first section of the course.
+ *
+ * Uses before_standard_top_of_body_html (the real Moodle callback).
+ * JavaScript moves the link into the first course section (#section-0).
+ * IMPORTANT: Purge all caches after changes.
+ *
+ * @see https://docs.moodle.org/dev/Output_callbacks
+ * @return string HTML to inject, or empty string.
  */
-function local_programcurriculum_before_standard_top_of_page() {
-    global $COURSE;
+function local_programcurriculum_before_standard_top_of_body_html(): string {
+    global $PAGE;
 
-    $context = context_course::instance($COURSE->id);
-    local_programcurriculum_inject_first_section($COURSE, $context);
+    if (!$PAGE->course || $PAGE->course->id <= 0) {
+        return '';
+    }
+
+    if ($PAGE->context->contextlevel != CONTEXT_COURSE && $PAGE->context->contextlevel != CONTEXT_MODULE) {
+        return '';
+    }
+
+    $coursecontext = $PAGE->context->contextlevel == CONTEXT_COURSE
+        ? $PAGE->context
+        : $PAGE->context->get_course_context(false);
+
+    if (!$coursecontext || !has_capability('block/programcurriculum:viewownprogress', $coursecontext)) {
+        return '';
+    }
+
+    if (strpos($PAGE->pagetype, 'course-view') === false) {
+        return '';
+    }
+
+    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $PAGE->course->id]);
+    $text = get_string('curriculumnav', 'local_programcurriculum');
+
+    $link = html_writer::link($url, $text, [
+        'class' => 'btn btn-primary',
+        'style' => 'display: inline-block; margin: 0.5rem 0;',
+    ]);
+
+    $html = html_writer::div(
+        html_writer::div($link, 'container-fluid'),
+        'local-programcurriculum-top-link',
+        ['class' => 'mb-3 p-2', 'style' => 'background-color: var(--bs-gray-100, #f8f9fa);']
+    );
+
+    // Move to first section: #section-0 (format_topics) or first .section
+    $script = '
+    document.addEventListener("DOMContentLoaded", function() {
+        var holder = document.getElementById("local-programcurriculum-top-link-movable");
+        var target = document.getElementById("section-0") ||
+            document.querySelector(".course-content .section") ||
+            document.querySelector(".sections .section") ||
+            document.getElementById("region-main");
+        if (holder && target) {
+            var content = target.querySelector(".section_content, .content, .summary") || target;
+            content.insertBefore(holder, content.firstChild);
+        }
+    });';
+
+    $html = html_writer::div($html, '', ['id' => 'local-programcurriculum-top-link-movable']);
+    $html .= html_writer::tag('script', $script, ['type' => 'text/javascript']);
+
+    return $html;
 }
