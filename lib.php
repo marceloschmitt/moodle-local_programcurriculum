@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Extends the course navigation with a link to curriculum progress.
- *
- * Adds "Currículo" to the course node (same level as Participants, Grades)
- * when the user has block/programcurriculum:viewownprogress.
- * Requires block_programcurriculum to be installed.
+ * Adiciona "Currículo" ao menu do curso ao lado de Participants/Grades.
  *
  * @param navigation_node $coursenode The course navigation node.
  * @param stdClass $course The course object.
@@ -32,12 +29,15 @@ function local_programcurriculum_extend_navigation_course(
     stdClass $course,
     context_course $context
 ): void {
+    // Verifica se o usuário tem permissão
     if (!has_capability('block/programcurriculum:viewownprogress', $context)) {
         return;
     }
 
-    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => (int) $course->id]);
+    // URL do bloco/programa de currículo
+    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $course->id]);
 
+    // Cria o nó do menu
     $node = navigation_node::create(
         get_string('curriculumnav', 'local_programcurriculum'),
         $url,
@@ -46,8 +46,24 @@ function local_programcurriculum_extend_navigation_course(
         'programcurriculum',
         new pix_icon('i/report', '')
     );
-    $node->showinflatnavigation = true;
-    $node->order = 5;
 
-    $coursenode->add_node($node, 'participants');
+    // Define que o item apareça no menu principal
+    $node->showinflatnavigation = true;
+
+    // Define a ordem para aparecer antes do "More" (tipicamente < 50)
+    $node->order = 20; // Ajuste se precisar
+
+    // Procura o node "participants" ou "grades" para inserir após
+    $insertafter = $coursenode->get('participants');
+    if (!$insertafter) {
+        $insertafter = $coursenode->get('grades');
+    }
+
+    if ($insertafter) {
+        // Insere logo após Participants ou Grades
+        $coursenode->insert_node($node, $insertafter->key);
+    } else {
+        // Se não encontrar, adiciona normalmente
+        $coursenode->add_node($node);
+    }
 }
