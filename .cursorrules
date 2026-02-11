@@ -1,0 +1,15 @@
+# local_programcurriculum
+
+Plugin **local** do Moodle que adiciona "Currículo" à navegação principal do curso.
+
+## Contexto
+
+- Depende do `block_programcurriculum`. O block contém as páginas, lógica e capabilities; este plugin só adiciona o link na navegação.
+- Usa `local_programcurriculum_extend_navigation()` em lib.php — callback exclusivo de plugins local.
+- O link vai para `/blocks/programcurriculum/view.php`; a capability usada é `block/programcurriculum:viewownprogress`.
+
+## Ao editar
+
+- Manter compatibilidade com Moodle 4.4+.
+- Strings em `lang/en/` e `lang/pt_br/` com componente `local_programcurriculum`.
+- Não adicionar capabilities — usar as do block.
