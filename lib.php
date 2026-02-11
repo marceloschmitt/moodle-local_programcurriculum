@@ -18,52 +18,40 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Adiciona "Currículo" ao menu do curso ao lado de Participants/Grades.
+ * Add item to course secondary navigation (horizontal menu).
  *
- * @param navigation_node $coursenode The course navigation node.
- * @param stdClass $course The course object.
- * @param context_course $context The course context.
+ * Moodle 5.1 compatible.
+ *
+ * @param navigation_node $navigation
+ * @param stdClass $course
+ * @param context_course $context
  */
-function local_programcurriculum_extend_navigation_course(
-    navigation_node $coursenode,
+function local_programcurriculum_extend_navigation_course_secondary(
+    navigation_node $navigation,
     stdClass $course,
     context_course $context
 ): void {
-    // Verifica se o usuário tem permissão
+
     if (!has_capability('block/programcurriculum:viewownprogress', $context)) {
         return;
     }
 
-    // URL do bloco/programa de currículo
-    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $course->id]);
+    $url = new moodle_url(
+        '/blocks/programcurriculum/view.php',
+        ['courseid' => $course->id]
+    );
 
-    // Cria o nó do menu
     $node = navigation_node::create(
         get_string('curriculumnav', 'local_programcurriculum'),
         $url,
         navigation_node::TYPE_CUSTOM,
         null,
-        'programcurriculum',
-        new pix_icon('i/report', '')
+        'programcurriculum'
     );
 
-    // Define que o item apareça no menu principal
+    // ESSENCIAL para aparecer no menu horizontal principal
     $node->showinflatnavigation = true;
 
-    // Define a ordem para aparecer antes do "More" (tipicamente < 50)
-    $node->order = 20; // Ajuste se precisar
-
-    // Procura o node "participants" ou "grades" para inserir após
-    $insertafter = $coursenode->get('participants');
-    if (!$insertafter) {
-        $insertafter = $coursenode->get('grades');
-    }
-
-    if ($insertafter) {
-        // Insere logo após Participants ou Grades
-        $coursenode->insert_node($node, $insertafter->key);
-    } else {
-        // Se não encontrar, adiciona normalmente
-        $coursenode->add_node($node);
-    }
+    // Adiciona direto na navegação secundária
+    $navigation->add_node($node);
 }
