@@ -79,9 +79,23 @@ function local_programcurriculum_before_standard_top_of_body_html(): string {
         'style' => 'display: inline-block; margin: 0.5rem 0;',
     ]);
 
-    return html_writer::div(
+    $html = html_writer::div(
         html_writer::div($link, 'container-fluid'),
         'local-programcurriculum-top-link',
         ['class' => 'mb-3 p-2', 'style' => 'background-color: var(--bs-gray-100, #f8f9fa);']
     );
+
+    $script = '
+    document.addEventListener("DOMContentLoaded", function() {
+        var holder = document.getElementById("local-programcurriculum-top-link-movable");
+        var target = document.getElementById("region-main") || document.querySelector("[role=\"main\"]");
+        if (holder && target) {
+            target.insertBefore(holder, target.firstChild);
+        }
+    });';
+
+    $html = html_writer::div($html, '', ['id' => 'local-programcurriculum-top-link-movable']);
+    $html .= html_writer::tag('script', $script, ['type' => 'text/javascript']);
+
+    return $html;
 }
