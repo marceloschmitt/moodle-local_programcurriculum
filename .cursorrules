@@ -10,6 +10,7 @@ Plugin **local** do Moodle que adiciona "Currículo" à navegação principal do
 
 ## Ao editar
 
+- Atualizar sempre a versão em version.php (incrementar o último número).
 - Manter compatibilidade com Moodle 4.4+.
 - Strings em `lang/en/` e `lang/pt_br/` com componente `local_programcurriculum`.
 - Não adicionar capabilities — usar as do block.

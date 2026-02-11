@@ -38,7 +38,7 @@ function local_programcurriculum_extend_navigation_course(
 
     $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => (int) $course->id]);
 
-    $node = $coursenode->add(
+    $node = navigation_node::create(
         get_string('curriculumnav', 'local_programcurriculum'),
         $url,
         navigation_node::TYPE_CUSTOM,
@@ -47,4 +47,7 @@ function local_programcurriculum_extend_navigation_course(
         new pix_icon('i/report', '')
     );
     $node->showinflatnavigation = true;
+    $node->order = 5;
+
+    $coursenode->add_node($node, 'participants');
 }
