@@ -45,9 +45,11 @@ function local_programcurriculum_extend_navigation_course(
 /**
  * Injects a visible link at the top of the course page.
  *
- * Uses the output callback to add HTML above the main content.
- * Only shows when viewing a course and user has the capability.
+ * Output callback: before_standard_top_of_body_html.
+ * Moodle discovers it via get_plugins_with_function() - no callbacks.php needed.
+ * IMPORTANT: Purge all caches after adding (Site admin → Development → Purge all caches).
  *
+ * @see https://docs.moodle.org/dev/Output_callbacks
  * @return string HTML to inject at top of body, or empty string.
  */
 function local_programcurriculum_before_standard_top_of_body_html(): string {
@@ -72,12 +74,14 @@ function local_programcurriculum_before_standard_top_of_body_html(): string {
     $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $PAGE->course->id]);
     $text = get_string('curriculumnav', 'local_programcurriculum');
 
+    $link = html_writer::link($url, $text, [
+        'class' => 'btn btn-primary',
+        'style' => 'display: inline-block; margin: 0.5rem 0;',
+    ]);
+
     return html_writer::div(
-        html_writer::link($url, $text, [
-            'class' => 'btn btn-outline-secondary',
-            'style' => 'margin-bottom: 1rem;',
-        ]),
+        html_writer::div($link, 'container-fluid'),
         'local-programcurriculum-top-link',
-        ['style' => 'margin-bottom: 1rem;']
+        ['class' => 'mb-3 p-2', 'style' => 'background-color: var(--bs-gray-100, #f8f9fa);']
     );
 }

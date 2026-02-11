@@ -31,6 +31,12 @@ local/programcurriculum/
 └── version.php
 ```
 
+## Link no topo da página
+
+O plugin também injeta um link visível no topo da página do curso via callback `before_standard_top_of_body_html`. Se não aparecer:
+1. Acesse **Administração do site → Desenvolvimento → Purge all caches** (o Moodle faz cache das funções dos plugins).
+2. Confirme que o tema inclui `{{{ output.standard_top_of_body_html }}}` no layout (Boost e filhos como Academi incluem).
+
 ## Desenvolvimento
 
 - Plugin do tipo `local`.
