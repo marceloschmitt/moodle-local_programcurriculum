@@ -14,44 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Add item to course secondary navigation (horizontal menu).
+ * Extends the navigation with a link to curriculum progress.
  *
- * Moodle 5.1 compatible.
- *
- * @param navigation_node $navigation
- * @param stdClass $course
- * @param context_course $context
+ * @param global_navigation $nav The global navigation object.
  */
-function local_programcurriculum_extend_navigation_course_secondary(
-    navigation_node $navigation,
-    stdClass $course,
-    context_course $context
-): void {
+function local_programcurriculum_extend_navigation(global_navigation $nav): void {
+    global $PAGE;
 
-    if (!has_capability('block/programcurriculum:viewownprogress', $context)) {
+    if (!$PAGE->course || $PAGE->course->id <= 0) {
         return;
     }
 
-    $url = new moodle_url(
-        '/blocks/programcurriculum/view.php',
-        ['courseid' => $course->id]
-    );
+    $coursecontext = context_course::instance($PAGE->course->id);
+    if (!has_capability('block/programcurriculum:viewownprogress', $coursecontext)) {
+        return;
+    }
 
-    $node = navigation_node::create(
+    $courseid = (int) $PAGE->course->id;
+    $coursenode = $PAGE->navigation->find($courseid, navigation_node::TYPE_COURSE);
+
+    if (!$coursenode) {
+        return;
+    }
+
+    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $courseid]);
+
+    $thingnode = $coursenode->add(
         get_string('curriculumnav', 'local_programcurriculum'),
-        $url,
-        navigation_node::TYPE_CUSTOM,
-        null,
-        'programcurriculum'
+        $url
     );
-
-    // ESSENCIAL para aparecer no menu horizontal principal
-    $node->showinflatnavigation = true;
-
-    // Adiciona direto na navegação secundária
-    $navigation->add_node($node);
+    $thingnode->showinflatnavigation = true;
 }
