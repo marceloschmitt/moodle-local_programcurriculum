@@ -38,12 +38,13 @@ function local_programcurriculum_extend_navigation_course(
 
     $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => (int) $course->id]);
 
-    $coursenode->add(
+    $node = $coursenode->add(
         get_string('curriculumnav', 'local_programcurriculum'),
         $url,
-        navigation_node::TYPE_SETTING,
+        navigation_node::TYPE_CUSTOM,
         null,
         'programcurriculum',
         new pix_icon('i/report', '')
     );
+    $node->showinflatnavigation = true;
 }
