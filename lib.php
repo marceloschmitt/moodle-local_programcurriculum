@@ -17,34 +17,27 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Extends the navigation with a link to curriculum progress.
+ * Extends the course settings navigation with a link to curriculum progress.
  *
- * @param global_navigation $nav The global navigation object.
+ * @see https://moodledev.io/docs/5.1/apis/core/navigation
+ *
+ * @param navigation_node $parentnode The course navigation node.
+ * @param stdClass $course The course object.
+ * @param context_course $context The course context.
  */
-function local_programcurriculum_extend_navigation(global_navigation $nav): void {
-    global $PAGE;
-
-    if (!$PAGE->course || $PAGE->course->id <= 0) {
+function local_programcurriculum_extend_navigation_course(
+    navigation_node $parentnode,
+    stdClass $course,
+    context_course $context
+): void {
+    if (!has_capability('block/programcurriculum:viewownprogress', $context)) {
         return;
     }
 
-    $coursecontext = context_course::instance($PAGE->course->id);
-    if (!has_capability('block/programcurriculum:viewownprogress', $coursecontext)) {
-        return;
-    }
+    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $course->id]);
 
-    $courseid = (int) $PAGE->course->id;
-    $coursenode = $PAGE->navigation->find($courseid, navigation_node::TYPE_COURSE);
-
-    if (!$coursenode) {
-        return;
-    }
-
-    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $courseid]);
-
-    $thingnode = $coursenode->add(
+    $parentnode->add(
         get_string('curriculumnav', 'local_programcurriculum'),
         $url
     );
-    $thingnode->showinflatnavigation = true;
 }
