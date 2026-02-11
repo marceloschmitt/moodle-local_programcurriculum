@@ -17,46 +17,31 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Extends the global navigation with a link to curriculum progress.
+ * Extends the course navigation with a link to curriculum progress.
  *
- * Adds "Currículo" to the main course node (same level as Participants, Grades)
+ * Adds "Currículo" to the course node (same level as Participants, Grades)
  * when the user has block/programcurriculum:viewownprogress.
  * Requires block_programcurriculum to be installed.
  *
- * @param global_navigation $nav The global navigation object.
+ * @param navigation_node $coursenode The course navigation node.
+ * @param stdClass $course The course object.
+ * @param context_course $context The course context.
  */
-function local_programcurriculum_extend_navigation(global_navigation $nav): void {
-    global $PAGE;
-
-    if (!$PAGE->course || $PAGE->course->id <= 0) {
+function local_programcurriculum_extend_navigation_course(
+    navigation_node $coursenode,
+    stdClass $course,
+    context_course $context
+): void {
+    if (!has_capability('block/programcurriculum:viewownprogress', $context)) {
         return;
     }
 
-    if ($PAGE->context->contextlevel != CONTEXT_COURSE && $PAGE->context->contextlevel != CONTEXT_MODULE) {
-        return;
-    }
-
-    $coursecontext = $PAGE->context->contextlevel == CONTEXT_COURSE
-        ? $PAGE->context
-        : $PAGE->context->get_course_context(false);
-
-    if (!$coursecontext || !has_capability('block/programcurriculum:viewownprogress', $coursecontext)) {
-        return;
-    }
-
-    $courseid = (int) $PAGE->course->id;
-    $coursenode = $nav->find($courseid, navigation_node::TYPE_COURSE);
-
-    if (!$coursenode) {
-        return;
-    }
-
-    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $courseid]);
+    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => (int) $course->id]);
 
     $coursenode->add(
         get_string('curriculumnav', 'local_programcurriculum'),
         $url,
-        navigation_node::TYPE_CUSTOM,
+        navigation_node::TYPE_SETTING,
         null,
         'programcurriculum',
         new pix_icon('i/report', '')

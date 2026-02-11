@@ -4,7 +4,7 @@ Plugin **local** do Moodle que adiciona o item "Currículo" à navegação princ
 
 ## O que faz
 
-- Usa o callback `local_programcurriculum_extend_navigation(global_navigation $nav)` para localizar o nó do curso e inserir o link "Currículo".
+- Usa o callback `local_programcurriculum_extend_navigation_course()` para inserir o link "Currículo" no nó do curso (mesmo nível que Participantes, Notas).
 - O link aponta para `/blocks/programcurriculum/view.php`, que faz o roteamento correto (progresso próprio ou lista de alunos, conforme permissões).
 - Verifica a capability `block/programcurriculum:viewownprogress` antes de exibir o item.
 
