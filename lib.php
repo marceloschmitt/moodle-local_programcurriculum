@@ -75,10 +75,7 @@ function local_programcurriculum_before_standard_top_of_body_html(): string {
         return '';
     }
 
-    global $USER;
-
-    $courseid = (int) $PAGE->course->id;
-    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $courseid]);
+    $url = new moodle_url('/blocks/programcurriculum/view.php', ['courseid' => $PAGE->course->id]);
     $text = get_string('curriculumnav', 'local_programcurriculum');
 
     $link = html_writer::link($url, $text, [
@@ -86,39 +83,8 @@ function local_programcurriculum_before_standard_top_of_body_html(): string {
         'style' => 'display: inline-block; margin: 0.5rem 0;',
     ]);
 
-    $wheelshtml = '';
-    $canviewall = has_capability('block/programcurriculum:viewallprogress', $coursecontext);
-    if (!$canviewall) {
-        $mappingrepo = new \block_programcurriculum\mapping_repository();
-        $coursemappings = $mappingrepo->get_by_moodle_course($courseid);
-        $firstmapping = !empty($coursemappings) ? reset($coursemappings) : null;
-        $curriculumid = $firstmapping ? (int) $firstmapping->curriculumid : 0;
-        if ($curriculumid > 0) {
-            $PAGE->requires->css('/blocks/programcurriculum/styles.css');
-            $calculator = new \block_programcurriculum\progress_calculator();
-            $progress = $calculator->calculate_for_user((int) $USER->id, $curriculumid);
-            $enrollmentpercent = $progress['total'] > 0
-                ? (int) round(($progress['enrolled'] / $progress['total']) * 100) : 0;
-            $percent = $progress['percent'];
-            $total = $progress['total'];
-            $completed = $progress['completed'];
-            $enrolleddisciplines = $progress['enrolled'];
-            $wheelshtml = '<div class="programcurriculum-block-wheels programcurriculum-progress-wheels d-flex flex-wrap gap-2 mb-0">';
-            $wheelshtml .= '<div class="programcurriculum-progress-wheel" role="progressbar" aria-valuenow="' . (int) $percent . '" aria-valuemin="0" aria-valuemax="100" title="' . s(get_string('progressbycompletion', 'block_programcurriculum') . ': ' . $percent . '% (' . $completed . '/' . $total . ')') . '">';
-            $wheelshtml .= '<div class="programcurriculum-progress-wheel-circle" style="--p: ' . (int) $percent . ';"><span class="programcurriculum-progress-wheel-value">' . (int) $percent . '%</span></div>';
-            $wheelshtml .= '<div class="programcurriculum-progress-wheel-label small fw-bold mt-1">' . s(get_string('progressbycompletion_header', 'block_programcurriculum')) . '</div>';
-            $wheelshtml .= '<div class="programcurriculum-progress-wheel-detail small text-muted">' . (int) $completed . '/' . (int) $total . '</div></div>';
-            $wheelshtml .= '<div class="programcurriculum-progress-wheel programcurriculum-progress-wheel--enrollment" role="progressbar" aria-valuenow="' . (int) $enrollmentpercent . '" aria-valuemin="0" aria-valuemax="100" title="' . s(get_string('progressbyenrollment', 'block_programcurriculum') . ': ' . $enrollmentpercent . '% (' . $enrolleddisciplines . '/' . $total . ')') . '">';
-            $wheelshtml .= '<div class="programcurriculum-progress-wheel-circle" style="--p: ' . (int) $enrollmentpercent . ';"><span class="programcurriculum-progress-wheel-value">' . (int) $enrollmentpercent . '%</span></div>';
-            $wheelshtml .= '<div class="programcurriculum-progress-wheel-label small fw-bold mt-1">' . s(get_string('progressbyenrollment_header', 'block_programcurriculum')) . '</div>';
-            $wheelshtml .= '<div class="programcurriculum-progress-wheel-detail small text-muted">' . (int) $enrolleddisciplines . '/' . (int) $total . '</div></div>';
-            $wheelshtml .= '</div>';
-        }
-    }
-
-    $inner = $wheelshtml . html_writer::div($link, 'ms-3');
     $html = html_writer::div(
-        html_writer::div($inner, 'container-fluid d-flex flex-wrap align-items-center gap-2'),
+        html_writer::div($link, 'container-fluid'),
         'local-programcurriculum-top-link',
         ['class' => 'mb-3 p-2', 'style' => 'background-color: var(--bs-gray-100, #f8f9fa);']
     );
